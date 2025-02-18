@@ -116,6 +116,7 @@ def display_result_single(args):
 
     df.to_csv('df_raw.csv')
 
+    # @TODO: task들을 category 별로 sorting 하는 metric 추가
     print("\n########## All Tasks ##########")
     df_1 = df[["model", "score", "task"]]
     df_1 = df_1.groupby(["model", "task"]).mean()

@@ -1,7 +1,7 @@
 import sys
 import warnings
 
-from livebench.model.completions import chat_completion_openai, chat_completion_palm
+from livebench.model.completions import chat_completion_openai, chat_completion_local_vllm, chat_completion_palm
 from livebench.model.model_adapter import BaseModelAdapter, PaLM2Adapter, get_model_adapter
 from livebench.model.models import (
     AnthropicModel, AWSModel, CohereModel, DeepseekModel, GeminiModel,
@@ -446,7 +446,7 @@ def get_model(name: str) -> Model:
             display_name=name,
             aliases=[],
             adapter=get_model_adapter(name),
-            api_function=chat_completion_openai,
+            api_function=chat_completion_local_vllm,
         )
     else:
         return matches[0]

@@ -22,7 +22,7 @@ from livebench.common import (
     LIVE_BENCH_DATA_SUPER_PATH,
     filter_questions
 )
-from livebench.model.completions import chat_completion_openai
+from livebench.model.completions import chat_completion_openai, chat_completion_local_vllm
 
 from livebench.model import Model, get_model
 
@@ -67,7 +67,7 @@ def get_answer(
             conv.append_message(conv.roles[1], None)
 
             if api_dict is not None:
-                output, num_tokens = chat_completion_openai(
+                output, num_tokens = chat_completion_local_vllm(
                     model, conv, temperature, max_tokens, api_dict=api_dict
                 )
             else:

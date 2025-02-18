@@ -106,6 +106,55 @@ def chat_completion_openai(
             return API_ERROR_OUTPUT, 0
         raise e
 
+@retry(
+    stop=stop_after_attempt(API_MAX_RETRY),
+    wait=wait_fixed(API_RETRY_SLEEP),
+    retry=retry_if_exception_type(Exception),
+    after=retry_log,
+    retry_error_callback=retry_fail
+)
+def chat_completion_local_vllm(
+    model: "Model", conv, temperature=0.2, max_tokens=4096, api_dict=None, top_p=0.96, presence_penalty=1.003, stop=[]
+) -> tuple[str, int]:
+    from livebench.model.models import OpenAIModel
+    from openai import AsyncOpenAI, OpenAI, NOT_GIVEN
+
+    if api_dict is not None:
+        client = OpenAI(
+            api_key='-', 
+            base_url=api_dict["api_base"], 
+            timeout=3000
+        )
+    else:
+        client = OpenAI(timeout=1000)
+    
+    messages = conv.to_openai_api_messages()
+
+    try:
+        response = client.chat.completions.create(
+                        model=model.api_name,
+                        messages=messages,
+                        n=1,
+                        max_tokens=max_tokens,
+                        temperature=temperature,
+                        reasoning_effort=model.api_kwargs['reasoning_effort'] if model.api_kwargs is not None and 'reasoning_effort' in model.api_kwargs else NOT_GIVEN,
+                        top_p=0.96,
+                        presence_penalty=1.003,
+                        stop=[],
+                    )
+        message = response.choices[0].message.content
+        if message is None:
+            raise Exception("No message returned from OpenAI")
+        output = message
+        num_tokens = response.usage.completion_tokens
+
+        return output, num_tokens
+    except Exception as e:
+        if "invalid_prompt" in str(e).lower():
+            print("invalid prompt, giving up")
+            return API_ERROR_OUTPUT, 0
+        raise e
+
 
 @retry(
     stop=stop_after_attempt(API_MAX_RETRY),

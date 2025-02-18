@@ -41,42 +41,47 @@ tmux kill-session -t $SESSION 2>/dev/null
 tmux new-session -d -s $SESSION
 
 # Array of benchmark names
+# @TODO: 이렇게 따로 task 별로 안풀고 모든 task를 자동으로 읽어오도록 변경 => show_livebench_result.py 참조하기
+# get_categories_tasks 함수 참고해서 만들수 있을지도
+# @24.11.15
 BENCHMARKS=(
     # "live_bench/coding"
-    "live_bench/coding/coding_completion_1"
-    "live_bench/coding/coding_completion_2"
-    "live_bench/coding/LCB_generation_1"
-    "live_bench/coding/LCB_generation_2"
-    "live_bench/coding/LCB_generation_3"
+    "live_bench/coding/coding_completion"
+    "live_bench/coding/LCB_generation"
     # "live_bench/data_analysis"
     "live_bench/data_analysis/cta"
     "live_bench/data_analysis/tablejoin"
     "live_bench/data_analysis/tablereformat"
     # "live_bench/instruction_following"
-    "live_bench/instruction_following/summarize_2"
-    "live_bench/instruction_following/simplify_2"
-    "live_bench/instruction_following/paraphrase_2"
-    "live_bench/instruction_following/story_generation_2"
+    "live_bench/instruction_following/summarize"
+    "live_bench/instruction_following/simplify"
+    "live_bench/instruction_following/paraphrase"
+    "live_bench/instruction_following/story_generation"
     # "live_bench/language"
+    "live_bench/language/connections"
     "live_bench/language/typos"
     "live_bench/language/plot_unscrambling"
-    "live_bench/language/connections_2"
     # "live_bench/math"
     "live_bench/math/AMPS_Hard"
-    "live_bench/math/AMPS_Hard_2"
     "live_bench/math/math_comp"
-    "live_bench/math/math_comp_2"
-    "live_bench/math/olympiad_2"
+    "live_bench/math/olympiad"
     # "live_bench/reasoning"
-    "live_bench/reasoning/zebra_puzzle_2"
-    "live_bench/reasoning/spatial"
+    "live_bench/reasoning/zebra_puzzle"
     "live_bench/reasoning/web_of_lies_v2"
+    "live_bench/reasoning/spatial"
 
 )
 
+# 'coding': ['coding_completion', 'LCB_generation'], 
+# 'data_analysis': ['tablereformat', 'tablejoin', 'cta'], 
+# 'instruction_following': ['simplify', 'story_generation', 'paraphrase', 'summarize'], 
+# 'math': ['math_comp', 'AMPS_Hard', 'olympiad'], 
+# 'reasoning': ['zebra_puzzle', 'web_of_lies_v2', 'spatial'], 
+# 'language': ['connections', 'typos', 'plot_unscrambling']                                           
+
 gen_api_answer="python -u gen_api_answer.py --model $model --question-source $question_source"
 gen_ground_truth_judgment="python -u gen_ground_truth_judgment.py --model $model --question-source $question_source"
-
+print_time="date"
 if [ -n "$api_base" ]; then
     gen_api_answer="$gen_api_answer --api-base $api_base"
 fi
@@ -107,6 +112,7 @@ for ((i=1; i<${#BENCHMARKS[@]}; i++)); do
     # Send the command to the new pane
     tmux send-keys -t $SESSION "source $venv" C-m
     tmux send-keys -t $SESSION "$gen_api_answer --bench-name ${BENCHMARKS[i]} && $gen_ground_truth_judgment --bench-name ${BENCHMARKS[i]}" C-m
+    tmux send-keys -t $SESSION "$print_time" C-m
     
     # Arrange panes in tiled layout
     tmux select-layout -t $SESSION tiled

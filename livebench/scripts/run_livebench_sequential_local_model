@@ -3,6 +3,7 @@ modelid=$2
 venv=$3
 question_source=${4:-'huggingface'}
 
+TP=8
 
 if [ -z "$modelpath" ] || [ -z "$modelid" ] || [ -z "$venv" ]; then
     echo "Usage: run_livebench_parallel <modelpath> <modelid> <venv-path> <optional-question-source>"
@@ -35,7 +36,7 @@ BENCHMARKS=(
     "live_bench/reasoning"
 )
 
-gen_api_answer="python -u gen_model_answer.py --model-path $modelpath --model-id $modelid --question-source $question_source"
+gen_api_answer="python -u gen_model_answer.py --model-path $modelpath --model-id $modelid --question-source $question_source --num-gpus-total $TP --num-gpus-per-model 2"
 gen_ground_truth_judgment="python -u gen_ground_truth_judgment.py --model $modelid --question-source $question_source"
 
 tmux send-keys -t $SESSION "source $venv" C-m
